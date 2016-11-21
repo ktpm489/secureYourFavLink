@@ -1,0 +1,120 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "autotrack",
+        "scope": null,
+        "escapedName": "autotrack",
+        "name": "autotrack",
+        "rawSpec": "",
+        "spec": "latest",
+        "type": "tag"
+      },
+      "D:\\Developer\\intersquad\\online-applications\\Backflow-webapp"
+    ]
+  ],
+  "_from": "autotrack@latest",
+  "_id": "autotrack@1.0.1",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/autotrack",
+  "_nodeVersion": "6.0.0",
+  "_npmOperationalInternal": {
+    "host": "packages-12-west.internal.npmjs.com",
+    "tmp": "tmp/autotrack-1.0.1.tgz_1470855660321_0.5728219624143094"
+  },
+  "_npmUser": {
+    "name": "philipwalton",
+    "email": "philip@philipwalton.com"
+  },
+  "_npmVersion": "3.8.6",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "autotrack",
+    "scope": null,
+    "escapedName": "autotrack",
+    "name": "autotrack",
+    "rawSpec": "",
+    "spec": "latest",
+    "type": "tag"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "https://registry.npmjs.org/autotrack/-/autotrack-1.0.1.tgz",
+  "_shasum": "a77f68a3a67238f88b5c29ed19892adb48991f5f",
+  "_shrinkwrap": null,
+  "_spec": "autotrack",
+  "_where": "D:\\Developer\\intersquad\\online-applications\\Backflow-webapp",
+  "author": {
+    "name": "Philip Walton",
+    "email": "philip@philipwalton.com",
+    "url": "http://philipwalton.com"
+  },
+  "bugs": {
+    "url": "https://github.com/googleanalytics/autotrack/issues"
+  },
+  "dependencies": {
+    "debounce": "^1.0.0",
+    "dom-utils": "^0.3.0",
+    "object-assign": "^4.1.0"
+  },
+  "description": "Automatic and enhanced Google Analytics tracking for common user interactions on the web",
+  "devDependencies": {
+    "browserify": "^13.1.0",
+    "connect": "^3.4.1",
+    "eslint": "^3.2.2",
+    "gulp": "^3.9.1",
+    "gulp-eslint": "^3.0.1",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-uglify": "^2.0.0",
+    "gulp-util": "^3.0.7",
+    "gulp-webdriver": "^2.0.2",
+    "intersection-observer": "^0.1.1",
+    "lodash": "^4.14.2",
+    "mocha": "^3.0.2",
+    "ngrok": "^2.2.2",
+    "selenium-server-standalone-jar": "^2.53.1",
+    "serve-static": "^1.11.1",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0",
+    "wdio-mocha-framework": "^0.4.0",
+    "wdio-sauce-service": "^0.2.4",
+    "webdriverio": "^4.2.3"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "a77f68a3a67238f88b5c29ed19892adb48991f5f",
+    "tarball": "https://registry.npmjs.org/autotrack/-/autotrack-1.0.1.tgz"
+  },
+  "gitHead": "2b262e85c36d0da740fac78979755ee47036fbe1",
+  "homepage": "https://github.com/googleanalytics/autotrack#readme",
+  "keywords": [
+    "analytics",
+    "analyticsjs",
+    "auto",
+    "google"
+  ],
+  "license": "Apache-2.0",
+  "main": "lib",
+  "maintainers": [
+    {
+      "name": "philipwalton",
+      "email": "philip@philipwalton.com"
+    }
+  ],
+  "name": "autotrack",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/googleanalytics/autotrack.git"
+  },
+  "scripts": {
+    "build": "gulp build",
+    "start": "gulp watch",
+    "test": "gulp test",
+    "watch": "gulp watch"
+  },
+  "version": "1.0.1"
+}
