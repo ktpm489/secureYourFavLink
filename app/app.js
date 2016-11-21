@@ -10,6 +10,7 @@ var LoginController = require('./controllers/LoginController')
 var HomeController = require('./controllers/HomeController')
 
 var AuthService = require('./services/AuthService')
+var LinkService = require('./services/LinkService')
 
 var app = angular.module('app', [ngRoute, bootstrap, ngResource, ngCookies, 'angularValidator'])
 
@@ -31,6 +32,7 @@ app.config(['$routeProvider',
 ]);
 
 app.controller('LoginController', ['$scope', '$rootScope', '$window', '$location', '$cookies', 'AuthService', LoginController])
-app.controller('HomeController', ['$scope', '$rootScope', '$window', '$location', 'AuthService', HomeController])
+app.controller('HomeController', ['$scope', '$rootScope', '$window', '$location', 'AuthService', 'LinkService', HomeController])
 
 app.service('AuthService', ['$resource', '$q', '$cookies', AuthService]);
+app.service('LinkService', ['$resource', '$q', 'AuthService', LinkService]);

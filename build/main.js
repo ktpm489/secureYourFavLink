@@ -11,6 +11,7 @@ var LoginController = require('./controllers/LoginController')
 var HomeController = require('./controllers/HomeController')
 
 var AuthService = require('./services/AuthService')
+var LinkService = require('./services/LinkService')
 
 var app = angular.module('app', [ngRoute, bootstrap, ngResource, ngCookies, 'angularValidator'])
 
@@ -32,32 +33,66 @@ app.config(['$routeProvider',
 ]);
 
 app.controller('LoginController', ['$scope', '$rootScope', '$window', '$location', '$cookies', 'AuthService', LoginController])
-app.controller('HomeController', ['$scope', '$rootScope', '$window', '$location', 'AuthService', HomeController])
+app.controller('HomeController', ['$scope', '$rootScope', '$window', '$location', 'AuthService', 'LinkService', HomeController])
 
 app.service('AuthService', ['$resource', '$q', '$cookies', AuthService]);
-},{"../bower_components/tg-angular-validator/dist/angular-validator.js":5,"./controllers/HomeController":2,"./controllers/LoginController":3,"./services/AuthService":4,"angular":15,"angular-cookies":7,"angular-resource":9,"angular-route":11,"angular-ui-bootstrap":13}],2:[function(require,module,exports){
+app.service('LinkService', ['$resource', '$q', 'AuthService', LinkService]);
+},{"../bower_components/tg-angular-validator/dist/angular-validator.js":6,"./controllers/HomeController":2,"./controllers/LoginController":3,"./services/AuthService":4,"./services/LinkService":5,"angular":16,"angular-cookies":8,"angular-resource":10,"angular-route":12,"angular-ui-bootstrap":14}],2:[function(require,module,exports){
 'use strict';
-module.exports = function($scope, $rootScope, $window, $location, AuthService) {
+module.exports = function($scope, $rootScope, $window, $location, AuthService, LinkService) {
     window.scrollTo(0, 0);
     if (!AuthService.isHaveAuthToken()) {
         $location.path('login');
     }
-    sessionStorage.removeItem("currentStep");
-    sessionStorage.removeItem("submissionModel");
-    $scope.auth = AuthService.globalData.auth;
-    $scope.showNavBar = function() {
-        var modal = document.getElementById('navigationBarModal');
-        modal.style.display = 'block';
+    $scope.url = {
+        link: "",
+        title: ""
+    };
+    $scope.links = [];
+    var getLinks = function() {
+        LinkService.getLinks().then(function(res) {
+            console.log(res);
+            if (res.links) {
+                $scope.links = res.links;
+            }
+        }, function(err) {
+            console.log(err);
+            if (err.status == 403) {
+                AuthService.removeCookie();
+                $location.path('login');
+            }
+        });
+    };
+    getLinks();
+
+    $scope.save = function() {
+        LinkService.createLink($scope.url).then(function(res) {
+            if (res.success) {
+                getLinks();
+            }
+        }, function(err) {
+            console.log(err);
+            if (err.status == 403) {
+                AuthService.removeCookie();
+                $location.path('login');
+            }
+        });
+    };
+
+    $scope.remove = function(link) {
+        LinkService.deleteLink(link).then(function(res) {
+            if (res.success) {
+                getLinks();
+            }
+        }, function(err) {
+            console.log(err);
+            if (err.status == 403) {
+                AuthService.removeCookie();
+                $location.path('login');
+            }
+        });
     }
-    $scope.goToGauges = function() {
-        $location.path('gauges');
-    }
-    $scope.goToProfile = function() {
-        $location.path('profile');
-    }
-    $scope.startReport = function() {
-        $location.path('report/confirmProfile')
-    }
+
 }
 },{}],3:[function(require,module,exports){
 'use strict';
@@ -65,16 +100,15 @@ module.exports = function($scope, $rootScope, $window, $location, AuthService) {
 module.exports = function($scope, $rootScope, $window, $location, $cookies, AuthService) {
     window.scrollTo(0, 0);
     $scope.auth = {
-        rememberme: false,
+        rememberMe: false,
     };
     if (AuthService.isHaveAuthToken()) {
         $location.path('/');
     }
     $scope.login = function() {
-        $scope.errors = [];
         AuthService.login($scope.auth.username, $scope.auth.password).then(function(data) {
             if (data.success) {
-                if ($scope.auth.rememberme) {
+                if ($scope.auth.rememberMe) {
                     $cookies.put("jwtToken", data.token);
                     $cookies.put("loggedUsername", $scope.auth.username);
                 } else {
@@ -207,6 +241,82 @@ module.exports = function($resource, $q, $cookies) {
 
 }
 },{}],5:[function(require,module,exports){
+'use strict';
+
+module.exports = function($resource, $q, AuthService) {
+
+    this.getLinks = function() {
+        var deferred = $q.defer();
+        var domain = AuthService.setDomain();
+        var resource = $resource(domain + '/api/link/get', {}, {
+            getLink: {
+                method: 'POST',
+                headers: {
+                    'x-access-token': AuthService.savedToken,
+                }
+            }
+        });
+        var data = resource.getLink({},
+            function(response) {
+                deferred.resolve(response);
+            },
+            function(response) {
+                deferred.reject(response);
+            }
+        );
+        return deferred.promise;
+    }
+    this.createLink = function(urlInfo) {
+        var deferred = $q.defer();
+        var domain = AuthService.setDomain();
+        var resource = $resource(domain + '/api/link/save', {}, {
+            post: {
+                method: 'POST',
+                headers: {
+                    'x-access-token': AuthService.savedToken,
+                    'Content-Type': 'application/json'
+                }
+            }
+        });
+        var data = resource.post({
+                url: urlInfo
+            },
+            function(response) {
+                deferred.resolve(response);
+            },
+            function(response) {
+                deferred.reject(response);
+            }
+        );
+        return deferred.promise;
+    };
+    this.deleteLink = function(urlInfo) {
+        var deferred = $q.defer();
+        var domain = AuthService.setDomain();
+        var resource = $resource(domain + '/api/link/remove', {}, {
+            delete: {
+                method: 'POST',
+                headers: {
+                    'x-access-token': AuthService.savedToken,
+                    'Content-Type': 'application/json'
+                }
+            }
+        });
+        var data = resource.delete({
+                url: urlInfo
+            },
+            function(response) {
+                deferred.resolve(response);
+            },
+            function(response) {
+                deferred.reject(response);
+            }
+        );
+        return deferred.promise;
+    };
+
+}
+},{}],6:[function(require,module,exports){
 angular.module('angularValidator', []);
 
 angular.module('angularValidator').directive('angularValidator', ['$injector', '$parse',
@@ -468,7 +578,7 @@ angular.module('angularValidator').directive('angularValidator', ['$injector', '
     }]
 );
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.8
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -792,11 +902,11 @@ angular.module('ngCookies').provider('$$cookieWriter', function $$CookieWriterPr
 
 })(window, window.angular);
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 require('./angular-cookies');
 module.exports = 'ngCookies';
 
-},{"./angular-cookies":6}],8:[function(require,module,exports){
+},{"./angular-cookies":7}],9:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.8
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -1661,11 +1771,11 @@ angular.module('ngResource', ['ng']).
 
 })(window, window.angular);
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 require('./angular-resource');
 module.exports = 'ngResource';
 
-},{"./angular-resource":8}],10:[function(require,module,exports){
+},{"./angular-resource":9}],11:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.8
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -2736,11 +2846,11 @@ function ngViewFillContentFactory($compile, $controller, $route) {
 
 })(window, window.angular);
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 require('./angular-route');
 module.exports = 'ngRoute';
 
-},{"./angular-route":10}],12:[function(require,module,exports){
+},{"./angular-route":11}],13:[function(require,module,exports){
 /*
  * angular-ui-bootstrap
  * http://angular-ui.github.io/bootstrap/
@@ -10088,12 +10198,12 @@ angular.module('ui.bootstrap.datepickerPopup').run(function() {!angular.$$csp().
 angular.module('ui.bootstrap.tooltip').run(function() {!angular.$$csp().noInlineStyle && !angular.$$uibTooltipCss && angular.element(document).find('head').prepend('<style type="text/css">[uib-tooltip-popup].tooltip.top-left > .tooltip-arrow,[uib-tooltip-popup].tooltip.top-right > .tooltip-arrow,[uib-tooltip-popup].tooltip.bottom-left > .tooltip-arrow,[uib-tooltip-popup].tooltip.bottom-right > .tooltip-arrow,[uib-tooltip-popup].tooltip.left-top > .tooltip-arrow,[uib-tooltip-popup].tooltip.left-bottom > .tooltip-arrow,[uib-tooltip-popup].tooltip.right-top > .tooltip-arrow,[uib-tooltip-popup].tooltip.right-bottom > .tooltip-arrow,[uib-tooltip-html-popup].tooltip.top-left > .tooltip-arrow,[uib-tooltip-html-popup].tooltip.top-right > .tooltip-arrow,[uib-tooltip-html-popup].tooltip.bottom-left > .tooltip-arrow,[uib-tooltip-html-popup].tooltip.bottom-right > .tooltip-arrow,[uib-tooltip-html-popup].tooltip.left-top > .tooltip-arrow,[uib-tooltip-html-popup].tooltip.left-bottom > .tooltip-arrow,[uib-tooltip-html-popup].tooltip.right-top > .tooltip-arrow,[uib-tooltip-html-popup].tooltip.right-bottom > .tooltip-arrow,[uib-tooltip-template-popup].tooltip.top-left > .tooltip-arrow,[uib-tooltip-template-popup].tooltip.top-right > .tooltip-arrow,[uib-tooltip-template-popup].tooltip.bottom-left > .tooltip-arrow,[uib-tooltip-template-popup].tooltip.bottom-right > .tooltip-arrow,[uib-tooltip-template-popup].tooltip.left-top > .tooltip-arrow,[uib-tooltip-template-popup].tooltip.left-bottom > .tooltip-arrow,[uib-tooltip-template-popup].tooltip.right-top > .tooltip-arrow,[uib-tooltip-template-popup].tooltip.right-bottom > .tooltip-arrow,[uib-popover-popup].popover.top-left > .arrow,[uib-popover-popup].popover.top-right > .arrow,[uib-popover-popup].popover.bottom-left > .arrow,[uib-popover-popup].popover.bottom-right > .arrow,[uib-popover-popup].popover.left-top > .arrow,[uib-popover-popup].popover.left-bottom > .arrow,[uib-popover-popup].popover.right-top > .arrow,[uib-popover-popup].popover.right-bottom > .arrow,[uib-popover-html-popup].popover.top-left > .arrow,[uib-popover-html-popup].popover.top-right > .arrow,[uib-popover-html-popup].popover.bottom-left > .arrow,[uib-popover-html-popup].popover.bottom-right > .arrow,[uib-popover-html-popup].popover.left-top > .arrow,[uib-popover-html-popup].popover.left-bottom > .arrow,[uib-popover-html-popup].popover.right-top > .arrow,[uib-popover-html-popup].popover.right-bottom > .arrow,[uib-popover-template-popup].popover.top-left > .arrow,[uib-popover-template-popup].popover.top-right > .arrow,[uib-popover-template-popup].popover.bottom-left > .arrow,[uib-popover-template-popup].popover.bottom-right > .arrow,[uib-popover-template-popup].popover.left-top > .arrow,[uib-popover-template-popup].popover.left-bottom > .arrow,[uib-popover-template-popup].popover.right-top > .arrow,[uib-popover-template-popup].popover.right-bottom > .arrow{top:auto;bottom:auto;left:auto;right:auto;margin:0;}[uib-popover-popup].popover,[uib-popover-html-popup].popover,[uib-popover-template-popup].popover{display:block !important;}</style>'); angular.$$uibTooltipCss = true; });
 angular.module('ui.bootstrap.timepicker').run(function() {!angular.$$csp().noInlineStyle && !angular.$$uibTimepickerCss && angular.element(document).find('head').prepend('<style type="text/css">.uib-time input{width:50px;}</style>'); angular.$$uibTimepickerCss = true; });
 angular.module('ui.bootstrap.typeahead').run(function() {!angular.$$csp().noInlineStyle && !angular.$$uibTypeaheadCss && angular.element(document).find('head').prepend('<style type="text/css">[uib-typeahead-popup].dropdown-menu{display:block;}</style>'); angular.$$uibTypeaheadCss = true; });
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 require('./dist/ui-bootstrap-tpls');
 
 module.exports = 'ui.bootstrap';
 
-},{"./dist/ui-bootstrap-tpls":12}],14:[function(require,module,exports){
+},{"./dist/ui-bootstrap-tpls":13}],15:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.8
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -41862,10 +41972,10 @@ $provide.value("$locale", {
 })(window);
 
 !window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 require('./angular');
 module.exports = angular;
 
-},{"./angular":14}]},{},[1]);
+},{"./angular":15}]},{},[1]);
 
 //# sourceMappingURL=maps/main.js.map

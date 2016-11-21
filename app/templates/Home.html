@@ -1,3 +1,16 @@
-<div id="content" class="homeContent">
-    <h1>Hello</h1>
+<form class="form-signin" id="saveLinkForm" name="saveLinkForm" angular-validator novalidate angular-validator-submit="save()">
+    <h2 class="form-signin-heading">Save your link</h2>
+    <label for="inputLink" class="sr-only">Link</label>
+    <input type="text" id="inputLink" class="form-control" placeholder="http(s)://" required="" autofocus="" required ng-model="url.link">
+    <label for="inputTitle" class="sr-only">Title</label>
+    <input type="Title" id="inputTitle" class="form-control" placeholder="Title" required="" required ng-model="url.title">
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Save</button>
+</form>
+<div class="listing">
+    <ul ng-repeat="link in links">
+        <li>
+            <button class="btn btn-danger buttonDelete" ng-click="remove(link)">Delete</button>
+            <a href="{{ link.url }}" class="linkText" target="_blank">{{ link.title }}</a>
+        </li>
+    </ul>
 </div>
